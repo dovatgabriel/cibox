@@ -1,5 +1,5 @@
-version: "3.8"
-
+version: '3.8'
+ 
 services:
   gitlab-runner:
     image: gitlab/gitlab-runner:latest
@@ -9,6 +9,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/etc/gitlab-runner
       - ./cache:/cache
+      - ./entrypoint.sh:/entrypoint.sh:ro
     environment:
       - GITLAB_URL=${GITLAB_URL:-https://gitlab.com/}
       - REGISTRATION_TOKEN=${REGISTRATION_TOKEN}
@@ -16,9 +17,12 @@ services:
       - RUNNER_DESCRIPTION=${RUNNER_DESCRIPTION:-CIBox Runner}
       - RUNNER_EXECUTOR=${RUNNER_EXECUTOR:-docker}
       - DOCKER_IMAGE=${DOCKER_IMAGE:-node:18-bullseye}
+    entrypoint: /bin/bash
+    command: /entrypoint.sh
     networks:
       - cibox-network
-
+ 
 networks:
   cibox-network:
     driver: bridge
+ 
