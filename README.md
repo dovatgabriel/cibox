@@ -9,6 +9,7 @@ CIBox is a minimal setup to run a **GitLab Runner in Docker**. Perfect for:
 - Running your CI/CD on your local machine (Mac, Linux)
 - Running CI on a Raspberry Pi or personal server
 - Testing your pipeline before merging
+- **Building Docker images** (Docker builds work out of the box!)
 - No complex system dependencies
 
 ## Prerequisites
@@ -39,7 +40,7 @@ Edit `.env` and fill in:
 ### 3. Start the runner
 
 ```bash
-docker compose up -d
+docker-compose up -d
 ```
 
 That's it! The runner will register itself and wait for jobs. ✅
@@ -48,19 +49,19 @@ That's it! The runner will register itself and wait for jobs. ✅
 
 ```bash
 # Start
-docker compose up -d
+docker-compose up -d
 
 # Stop
-docker compose down
+docker-compose down
 
 # Logs in real-time
-docker compose logs -f
+docker-compose logs -f
 
 # Restart
-docker compose restart
+docker-compose restart
 
 # Check runner status
-docker compose exec gitlab-runner gitlab-runner status
+docker-compose exec gitlab-runner gitlab-runner status
 ```
 
 ## Configure your .gitlab-ci.yml
@@ -98,7 +99,7 @@ git clone https://github.com/gabrieldovat/cibox.git
 cd cibox
 cp .env.example .env
 # ... configure your token ...
-docker compose up -d
+docker-compose up -d
 ```
 
 ## Troubleshooting
@@ -106,7 +107,7 @@ docker compose up -d
 ### Runner doesn't register
 
 ```bash
-docker compose logs
+docker-compose logs
 ```
 
 Check that `REGISTRATION_TOKEN` is correct in `.env`.
@@ -114,7 +115,7 @@ Check that `REGISTRATION_TOKEN` is correct in `.env`.
 ### Jobs don't run
 
 - Verify the tag in `.gitlab-ci.yml` matches `RUNNER_TAG_LIST` in `.env`
-- Check logs: `docker compose logs -f`
+- Check logs: `docker-compose logs -f`
 
 ### Docker socket not accessible
 
@@ -129,12 +130,31 @@ If you get a `/var/run/docker.sock` error, make sure Docker is running and you h
 
 ```
 cibox/
-├── docker compose.yml    # Docker configuration
+├── docker-compose.yml    # Docker configuration
 ├── .env                  # Variables (create from .env.example)
 ├── config/               # GitLab Runner config (generated)
 ├── cache/                # Job cache (generated)
 └── README.md
 ```
+
+## Building Docker Images
+
+CIBox supports Docker image builds out of the box! The runner automatically has access to the Docker daemon on your host machine.
+
+Example `.gitlab-ci.yml`:
+
+```yaml
+build_docker_image:
+  stage: build
+  image: docker:27
+  script:
+    - docker build -t myapp:latest .
+    - docker push myregistry.com/myapp:latest
+  tags:
+    - cibox
+```
+
+The Docker socket is automatically bind-mounted, so your build jobs can access the host's Docker daemon.
 
 ## Notes
 
