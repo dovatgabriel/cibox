@@ -1,4 +1,4 @@
-.PHONY: help up down logs restart status clean patate normal
+.PHONY: help up down logs restart status clean prune patate normal
 
 help:
 	@echo "CIBox - GitLab Runner in Docker"
@@ -9,6 +9,7 @@ help:
 	@echo "  make restart  - Restart the runner"
 	@echo "  make status   - Check runner status"
 	@echo "  make clean    - Remove container, config and cache"
+	@echo "  make prune    - Free Docker disk space (build cache, unused images, runner cache volumes)"
 	@echo "  make patate   - PATATE MODE: max performance (concurrent=4, shm=256MB, cached images)"
 	@echo "  make normal   - Restore default settings"
 
@@ -34,6 +35,15 @@ clean:
 	docker-compose down -v
 	rm -rf config/ cache/
 	@echo "🗑️  Cleaned up"
+
+# Keeps named volumes from other projects (databases, etc.): only runner-* volumes are removed
+prune:
+	@echo "🧹 Freeing Docker disk space..."
+	docker builder prune -af
+	docker image prune -af
+	@docker volume ls -q --filter dangling=true | grep '^runner-' | xargs -r docker volume rm
+	@docker system df
+	@echo "✅ Docker disk space freed"
 
 patate:
 	@echo "🥔 Activation du Patate Mode..."
